@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Optimasi Rute Pengiriman — Berlin52</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    /* ---- Light, colorful base ---- */
+    --bg:#FAF8FF;
+    --surface:#FFFFFF;
+    --surface-soft:#FCFBFF;
+    --ink:#211B3D;
+    --muted:#6B6386;
+    --muted-dim:#A39CC2;
+    --line:#ECE7FA;
+    --line-soft:#F2EEFB;
+
+    /* ---- Hero / brand gradient (cross-cutting actions) ---- */
+    --hero-1:#6366F1;
+    --hero-2:#EC4899;
+    --hero-3:#F97316;
+    --hero-grad:linear-gradient(120deg,var(--hero-1),var(--hero-2) 55%,var(--hero-3));
+    --hero-grad-soft:linear-gradient(120deg,rgba(99,102,241,0.12),rgba(236,72,153,0.12) 55%,rgba(249,115,22,0.12));
+
+    /* ---- Per-algorithm gradient identities ---- */
+    --ga-1:#16A34A;  --ga-2:#06B6D4;   --ga-grad:linear-gradient(135deg,var(--ga-1),var(--ga-2));   --ga-on:#fff;
+    --pso-1:#6366F1; --pso-2:#EC4899;  --pso-grad:linear-gradient(135deg,var(--pso-1),var(--pso-2)); --pso-on:#fff;
+    --aco-1:#F97316; --aco-2:#EF4444;  --aco-grad:linear-gradient(135deg,var(--aco-1),var(--aco-2)); --aco-on:#fff;
+    --bco-1:#F59E0B; --bco-2:#FDE047;  --bco-grad:linear-gradient(135deg,var(--bco-1),var(--bco-2)); --bco-on:#3A2A04;
+
+    --radius:20px;
+    --radius-sm:13px;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    --sans: "Plus Jakarta Sans", ui-sans-serif, "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+
+    --shadow-card: 0 14px 34px -16px rgba(99,102,241,0.22), 0 2px 8px -2px rgba(33,27,61,0.06);
+    --shadow-soft: 0 8px 22px -10px rgba(99,102,241,0.18);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(820px 520px at 6% -6%, rgba(99,102,241,0.16), transparent 62%),
+      radial-gradient(760px 520px at 96% 2%, rgba(236,72,153,0.14), transparent 60%),
+      radial-gradient(700px 560px at 50% 28%, rgba(249,115,22,0.09), transparent 62%),
+      radial-gradient(820px 520px at 100% 60%, rgba(6,182,212,0.13), transparent 60%),
+      radial-gradient(760px 480px at -2% 78%, rgba(245,158,11,0.13), transparent 60%),
+      radial-gradient(700px 500px at 60% 102%, rgba(236,72,153,0.10), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--hero-1);}
+
+  .wrap{
+    max-width:1320px;
+    margin:0 auto;
+    padding:0 28px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header.top{
+    padding:48px 28px 32px;
+    margin-bottom:8px;
+    position:relative;
+  }
+  header.top:after{
+    content:"";
+    position:absolute; left:28px; right:28px; bottom:0; height:1px;
+    background:linear-gradient(90deg, rgba(99,102,241,0.35), rgba(236,72,153,0.3), rgba(249,115,22,0.25), transparent);
+  }
+  .top-inner{max-width:1320px;margin:0 auto;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--hero-1);
+    font-weight:700;
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--hero-grad);
+    box-shadow:0 0 0 4px rgba(99,102,241,0.14);
+  }
+  h1.title{
+    font-size:clamp(28px,3.8vw,42px);
+    line-height:1.12;
+    letter-spacing:-0.01em;
+    margin:0 0 12px;
+    font-weight:800;
+    max-width:880px;
+    background:var(--hero-grad);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+  }
+  .subtitle{color:var(--muted);font-size:15.5px;max-width:680px;margin:0 0 22px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:10px;}
+  .badge{
+    font-family:var(--mono);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--hero-1);
+    background:rgba(99,102,241,0.09);
+    border:1px solid rgba(99,102,241,0.16);
+    padding:7px 13px;
+    border-radius:999px;
+    display:flex;align-items:center;gap:7px;
+  }
+  .badge b{color:var(--hero-2);font-weight:700;}
+
+  /* ---------- Pipeline layout ---------- */
+  .pipeline{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:0 28px;
+    margin-top:36px;
+  }
+  .rail{position:relative;}
+  .rail-line{
+    position:absolute;
+    left:31px;top:6px;bottom:6px;
+    width:2px;
+    background:linear-gradient(to bottom, rgba(99,102,241,0.35), rgba(236,72,153,0.3), rgba(249,115,22,0.25), rgba(6,182,212,0.25), rgba(245,158,11,0.3));
+  }
+  .step-node{
+    position:sticky;
+    top:24px;
+    width:64px;height:64px;
+    border-radius:50%;
+    background:var(--surface);
+    border:1.5px solid var(--line);
+    box-shadow:var(--shadow-soft);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:18px;
+    color:var(--muted-dim);
+    margin-bottom:140px;
+    transition:all .25s;
+  }
+  .step-node.active{
+    background:var(--hero-grad);
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 8px 24px -6px rgba(236,72,153,0.45);
+    transform:scale(1.06);
+  }
+
+  section.stage{
+    padding:28px 24px 64px;
+    margin:0 -24px 4px;
+    border-radius:24px;
+    scroll-margin-top:20px;
+  }
+  #stage-input{ background:radial-gradient(640px 320px at 0% 0%, rgba(6,182,212,0.08), transparent 70%); }
+  #stage-preprocessing{ background:radial-gradient(640px 320px at 0% 0%, rgba(168,162,196,0.10), transparent 70%); }
+  #stage-optimasi{ background:
+      radial-gradient(520px 320px at 0% 0%, rgba(99,102,241,0.10), transparent 65%),
+      radial-gradient(520px 320px at 100% 0%, rgba(236,72,153,0.09), transparent 65%),
+      radial-gradient(520px 320px at 50% 100%, rgba(249,115,22,0.08), transparent 65%),
+      radial-gradient(520px 320px at 0% 100%, rgba(245,158,11,0.08), transparent 65%); }
+  #stage-evaluasi{ background:radial-gradient(640px 320px at 100% 0%, rgba(99,102,241,0.09), transparent 70%); }
+  #stage-output{ background:radial-gradient(640px 360px at 50% 0%, rgba(245,158,11,0.10), transparent 70%),
+      radial-gradient(500px 300px at 100% 100%, rgba(236,72,153,0.08), transparent 70%); }
+
+  .stage-label{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--muted-dim);
+    margin:18px 0 6px;
+  }
+  .stage h2{
+    font-size:24px;
+    margin:0 0 10px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+  .stage > p.desc{color:var(--muted);max-width:760px;margin:0 0 22px;font-size:14.5px;}
+
+  /* ---------- Cards / panels ---------- */
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:var(--shadow-card);
+  }
+  .grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .grid-2-even{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+
+  @media (max-width:980px){
+    .grid-2,.grid-2-even{grid-template-columns:1fr;}
+    .grid-4{grid-template-columns:repeat(2,1fr);}
+    .pipeline{grid-template-columns:40px 1fr;gap:0 14px;}
+    .step-node{width:40px;height:40px;font-size:14px;margin-bottom:90px;}
+    .rail-line{left:19px;}
+    section.stage{margin:0 -10px 4px;padding:22px 14px 50px;}
+  }
+  @media (max-width:600px){
+    .grid-4{grid-template-columns:1fr;}
+    .wrap{padding:0 16px 60px;}
+    header.top{padding:34px 16px 26px;}
+  }
+
+  /* ---------- Map ---------- */
+  .map-card{position:relative;}
+  .map-card svg{
+    display:block;width:100%;height:auto;border-radius:14px;
+    background:
+      radial-gradient(circle at 14px 14px, rgba(99,102,241,0.06) 1.4px, transparent 1.6px) 0 0/28px 28px,
+      linear-gradient(160deg, var(--surface-soft), #F6F3FF);
+  }
+  .map-toolbar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:12px;flex-wrap:wrap;gap:10px;
+  }
+  .map-toolbar h3{margin:0;font-size:15px;font-weight:750;}
+  .algo-toggle{display:flex;gap:6px;flex-wrap:wrap;}
+  .algo-pill{
+    font-family:var(--mono);
+    font-size:11.5px;
+    font-weight:700;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    color:var(--muted);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .city-dot{fill:#B9B0DE;}
+  .city-dot.depot{fill:var(--hero-2);filter:drop-shadow(0 0 5px rgba(236,72,153,0.55));}
+  .route-path{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round;opacity:0.95;
+    filter:drop-shadow(0 2px 4px rgba(33,27,61,0.12));}
+  .route-anim{stroke-dasharray:7 7;animation:dashflow 1.1s linear infinite;}
+  @keyframes dashflow{to{stroke-dashoffset:-28;}}
+  .map-empty-note{
+    font-family:var(--mono);font-size:12px;color:var(--muted-dim);
+    margin-top:10px;
+  }
+
+  /* ---------- Buttons / inputs ---------- */
+  .btn{
+    font-family:var(--sans);
+    font-weight:700;
+    font-size:13.5px;
+    padding:11px 18px;
+    border-radius:11px;
+    border:1.5px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    cursor:pointer;
+    transition:filter .12s, transform .08s, box-shadow .15s;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft);}
+  .btn:active{transform:translateY(0px);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+  .btn-primary{
+    background:var(--hero-grad);
+    color:#fff;border-color:transparent;
+    box-shadow:0 10px 26px -8px rgba(236,72,153,0.5);
+  }
+  .btn-primary:hover{box-shadow:0 14px 30px -8px rgba(236,72,153,0.6);}
+  .btn-ghost{background:transparent;}
+  .btn-block{width:100%;justify-content:center;}
+  .btn-sm{padding:8px 13px;font-size:12.5px;}
+
+  select, input[type=number]{
+    font-family:var(--mono);
+    background:var(--surface-soft);
+    border:1.5px solid var(--line);
+    color:var(--ink);
+    border-radius:8px;
+    padding:7px 9px;
+    font-size:12.5px;
+    width:100%;
+  }
+  label.field{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px;font-family:var(--mono);font-weight:600;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+
+  details.adv{margin-top:6px;}
+  details.adv summary{
+    cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--muted-dim);font-weight:600;
+    list-style:none;
+  }
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary:before{content:"▸ ";}
+  details.adv[open] summary:before{content:"▾ ";}
+  details.adv .field-row{margin-top:12px;}
+
+  /* ---------- Algorithm cards ---------- */
+  .algo-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:0 18px 18px;
+    box-shadow:var(--shadow-card);
+    display:flex;flex-direction:column;
+    gap:12px;
+    overflow:hidden;
+  }
+  .algo-card .gradhead{
+    height:10px;margin:0 -18px 14px;
+  }
+  .algo-card .ahead{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .algo-card .aicon{
+    width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:18px;flex:none;
+  }
+  .algo-card .aname{font-weight:800;font-size:15px;}
+  .algo-card .afull{font-size:11.5px;color:var(--muted-dim);margin-top:1px;}
+  .swatch{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:7px;}
+  .algo-card .stat-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12.5px;color:var(--muted);padding:3px 0;}
+  .algo-card .stat-row b{color:var(--ink);font-size:14.5px;}
+  .status-pill{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--line-soft);color:var(--muted-dim);white-space:nowrap;}
+  .spark{width:100%;height:46px;display:block;}
+
+  /* ---------- Charts ---------- */
+  .chart-card canvas{width:100%;display:block;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--muted);}
+
+  /* ---------- Tables ---------- */
+  table.cmp{width:100%;border-collapse:collapse;font-size:13px;}
+  table.cmp th{
+    text-align:left;font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:0.06em;color:var(--muted-dim);padding:9px 10px;border-bottom:1.5px solid var(--line);
+  }
+  table.cmp td{padding:11px 10px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);}
+  table.cmp tr:last-child td{border-bottom:none;}
+  table.cmp tr.rank1-row td{background:linear-gradient(90deg, rgba(99,102,241,0.07), rgba(236,72,153,0.05));}
+  table.cmp td.rank1{color:var(--ink);font-weight:800;}
+  .algo-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-weight:700;font-size:13px;}
+
+  /* ---------- Analysis box ---------- */
+  .analysis-box{
+    background:linear-gradient(165deg, var(--surface), #FBF7FF);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px;
+    box-shadow:var(--shadow-card);
+    position:relative;
+    overflow:hidden;
+  }
+  .analysis-box:before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+    background:var(--hero-grad);
+  }
+  .analysis-box h3{margin:0 0 12px;font-size:16px;font-weight:800;}
+  .analysis-box p{margin:0 0 12px;color:#4A4366;font-size:14px;}
+  .analysis-box p:last-child{margin-bottom:0;}
+  .analysis-empty{color:var(--muted-dim);font-family:var(--mono);font-size:13px;}
+
+  .note-box{
+    background:linear-gradient(160deg, #FFF8E8, #FFF1F4);
+    border:1px solid rgba(245,158,11,0.25);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    color:#6B5A2E;
+    font-size:13.5px;
+    box-shadow:var(--shadow-soft);
+    position:relative;
+  }
+  .note-box:before{
+    content:"";position:absolute;left:0;top:18px;bottom:18px;width:4px;border-radius:4px;
+    background:linear-gradient(180deg,#F59E0B,#EC4899);
+  }
+  .note-box h4{color:#3A2A04;font-size:14px;margin:0 0 10px;font-weight:800;}
+  .note-box ul{margin:0;padding-left:18px;}
+  .note-box li{margin-bottom:7px;}
+
+  footer.page{
+    text-align:center;color:var(--muted-dim);font-size:12px;padding:30px 0 10px;font-family:var(--mono);
+  }
+
+  .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#fff;animation:pulseAnim 1.1s ease-in-out infinite;}
+  @keyframes pulseAnim{0%,100%{opacity:0.4;}50%{opacity:1;}}
+
+  .stat-mini{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;}
+  .stat-mini .s{font-family:var(--mono);}
+  .stat-mini .s .v{font-size:21px;font-weight:800;display:block;
+    background:var(--hero-grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;}
+  .stat-mini .s .l{font-size:11px;color:var(--muted-dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <p class="eyebrow"><span class="dot"></span>Modul Optimasi · Komputasi Evolusioner</p>
+    <h1 class="title">Sistem Optimasi Rute Pengiriman Barang</h1>
+    <p class="subtitle">Implementasi dan perbandingan langsung empat algoritma evolusioner — Genetic Algorithm, Particle Swarm Optimization, Ant Colony Optimization, dan Bee Colony Optimization — untuk menyelesaikan permasalahan Travelling Salesman Problem pada rute pengiriman.</p>
+    <div class="badge-row">
+      <span class="badge">Dataset: <b>Berlin52 (TSPLIB)</b></span>
+      <span class="badge">52 lokasi tujuan</span>
+      <span class="badge">Rute optimal diketahui: <b>7542</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="pipeline">
+    <div class="rail">
+      <div class="rail-line"></div>
+      <div class="step-node" data-target="stage-input">1</div>
+      <div class="step-node" data-target="stage-preprocessing">2</div>
+      <div class="step-node" data-target="stage-optimasi">3</div>
+      <div class="step-node" data-target="stage-evaluasi">4</div>
+      <div class="step-node" data-target="stage-output">5</div>
+    </div>
+
+    <div class="stages">
+
+      <!-- STAGE 1: INPUT -->
+      <section class="stage" id="stage-input">
+        <p class="stage-label">01 · Input</p>
+        <h2>Dataset Berlin52</h2>
+        <p class="desc">Koordinat 52 lokasi tujuan pengiriman, diambil dari TSPLIB (Reinelt, 1991). Setiap titik harus dikunjungi tepat satu kali sebelum kembali ke depot.</p>
+        <div class="panel map-card">
+          <div class="map-toolbar">
+            <h3>Peta lokasi tujuan</h3>
+            <span class="badge" style="margin:0;">52 titik · 1.326 pasangan jarak</span>
+          </div>
+          <svg id="map-input" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg>
+          <p class="map-empty-note">● titik gradasi ungu–merah muda = depot (titik awal &amp; akhir rute) &nbsp;·&nbsp; ● titik ungu pucat = lokasi tujuan pengiriman</p>
+        </div>
+      </section>
+
+      <!-- STAGE 2: PREPROCESSING -->
+      <section class="stage" id="stage-preprocessing">
+        <p class="stage-label">02 · Preprocessing</p>
+        <h2>Pembentukan Matriks Jarak</h2>
+        <p class="desc">Sebelum dioptimasi, jarak Euclidean antar setiap pasang lokasi dihitung terlebih dahulu dan disimpan sebagai matriks jarak — dipakai berulang oleh keempat algoritma agar perbandingan adil pada data yang identik.</p>
+        <div class="panel">
+          <div class="stat-mini" id="preprocessing-stats">
+            <div class="s"><span class="v">52 × 52</span><span class="l">Ukuran matriks jarak</span></div>
+            <div class="s"><span class="v">—</span><span class="l">Jarak rata-rata antar kota</span></div>
+            <div class="s"><span class="v">—</span><span class="l">Jarak terpendek (tetangga terdekat)</span></div>
+            <div class="s"><span class="v">—</span><span class="l">Jarak terjauh</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 3: MODUL OPTIMASI -->
+      <section class="stage" id="stage-optimasi">
+        <p class="stage-label">03 · Modul Optimasi (Algoritma Evolusioner)</p>
+        <h2>Jalankan &amp; Bandingkan Algoritma</h2>
+        <p class="desc">Keempat algoritma mencari urutan kunjungan dengan total jarak minimum pada matriks jarak yang sama. Jalankan satu per satu, atau jalankan semua sekaligus untuk membandingkan rute yang dihasilkan di peta.</p>
+
+        <div class="grid-2">
+          <div class="panel map-card">
+            <div class="map-toolbar">
+              <h3 id="map-optimasi-title">Rute hasil algoritma</h3>
+              <div class="algo-toggle" id="algo-toggle"></div>
+            </div>
+            <svg id="map-optimasi" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg>
+            <p class="map-empty-note" id="map-optimasi-note">Belum ada rute — jalankan salah satu algoritma di panel kanan.</p>
+          </div>
+
+          <div class="panel" style="display:flex;flex-direction:column;gap:14px;">
+            <button class="btn btn-primary btn-block" id="btn-run-all">▶ Jalankan Semua &amp; Bandingkan</button>
+            <div id="algo-cards" style="display:flex;flex-direction:column;gap:14px;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAGE 4: MODUL EVALUASI -->
+      <section class="stage" id="stage-evaluasi">
+        <p class="stage-label">04 · Modul Evaluasi</p>
+        <h2>Best Distance · Waktu Komputasi · Konvergensi</h2>
+        <p class="desc">Tiga metrik evaluasi performa setiap algoritma pada eksekusi terakhir, ditambah pengujian multi-eksperimen untuk melihat rata-rata dan kestabilan hasil pada beberapa kali percobaan.</p>
+        <p class="map-empty-note" id="eval-progress" style="margin:-8px 0 18px;">0 dari 4 algoritma telah dijalankan — grafik di bawah terisi otomatis setiap kali Anda menjalankan algoritma pada langkah 3.</p>
+
+        <div class="grid-2-even" style="margin-bottom:20px;">
+          <div class="panel chart-card">
+            <h3 style="margin:0 0 4px;font-size:14.5px;">Perbandingan Best Distance</h3>
+            <canvas id="chart-distance" width="600" height="280"></canvas>
+          </div>
+          <div class="panel chart-card">
+            <h3 style="margin:0 0 4px;font-size:14.5px;">Perbandingan Waktu Komputasi</h3>
+            <canvas id="chart-time" width="600" height="280"></canvas>
+          </div>
+        </div>
+
+        <div class="panel chart-card" style="margin-bottom:20px;">
+          <h3 style="margin:0 0 4px;font-size:14.5px;">Perbandingan Konvergensi</h3>
+          <canvas id="chart-convergence" width="1200" height="320"></canvas>
+          <div class="legend" id="convergence-legend"></div>
+        </div>
+
+        <div class="panel">
+          <div class="map-toolbar">
+            <h3 style="font-size:14.5px;">Pengujian &amp; Eksperimen (multi-trial)</h3>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <select id="trial-count" style="width:auto;">
+                <option value="3">3× percobaan</option>
+                <option value="5" selected>5× percobaan</option>
+                <option value="10">10× percobaan</option>
+              </select>
+              <button class="btn btn-sm" id="btn-run-experiment">Mulai Eksperimen</button>
+            </div>
+          </div>
+          <p class="map-empty-note" id="experiment-status" style="margin-bottom:14px;">Belum dijalankan. Eksperimen menjalankan tiap algoritma berulang kali untuk mengukur rata-rata (mean) dan standar deviasi hasil — karena keempatnya bersifat stokastik.</p>
+          <div id="experiment-table-wrap"></div>
+        </div>
+      </section>
+
+      <!-- STAGE 5: OUTPUT -->
+      <section class="stage" id="stage-output">
+        <p class="stage-label">05 · Output</p>
+        <h2>Rute Terbaik &amp; Rekomendasi Algoritma</h2>
+        <p class="desc">Ringkasan akhir: rute terbaik yang ditemukan, total jarak tempuh, perbandingan performa menyeluruh, dan rekomendasi algoritma yang paling sesuai untuk studi kasus ini.</p>
+
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="panel map-card">
+            <div class="map-toolbar">
+              <h3>Rute Terbaik</h3>
+              <span class="badge" id="winner-badge" style="margin:0;">—</span>
+            </div>
+            <svg id="map-output" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div class="panel">
+            <h3 style="margin:0 0 14px;font-size:14.5px;">Total Jarak Tempuh</h3>
+            <div class="stat-mini" id="output-stats">
+              <div class="s"><span class="v">—</span><span class="l">Best distance</span></div>
+              <div class="s"><span class="v">—</span><span class="l">Selisih dari optimal</span></div>
+              <div class="s"><span class="v">—</span><span class="l">Waktu komputasi</span></div>
+            </div>
+            <h3 style="margin:22px 0 10px;font-size:14.5px;">Perbandingan Performa</h3>
+            <div id="ranking-table-wrap"></div>
+          </div>
+        </div>
+
+        <div class="analysis-box" id="analysis-box">
+          <h3>🏆 Rekomendasi Algoritma Terbaik</h3>
+          <p class="analysis-empty" id="analysis-content">Jalankan algoritma pada langkah 3 untuk melihat analisis otomatis berdasarkan hasil eksekusi nyata di sini.</p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="note-box" style="margin-top:10px;">
+    <h4>Catatan Metodologi &amp; Keterbatasan</h4>
+    <ul>
+      <li>PSO pada dasarnya dirancang untuk ruang solusi kontinu, bukan permutasi. Implementasi ini menggunakan teknik <i>random-key encoding</i> (Bean, 1994) untuk memetakan posisi partikel menjadi urutan kunjungan kota — ini merupakan adaptasi yang secara wajar menghasilkan performa lebih rendah dibanding ACO/GA pada TSP, sesuai temuan pada laporan.</li>
+      <li>BCO diimplementasikan dengan pendekatan fase employed–onlooker–scout bee menggunakan local search (segment reversal), bukan replikasi presisi dari satu varian BCO tertentu di literatur.</li>
+      <li>Karena seluruh algoritma bersifat stokastik, hasil satu kali eksekusi dapat berbeda antar percobaan. Gunakan fitur Eksperimen multi-trial pada Modul Evaluasi untuk kesimpulan yang lebih tahan terhadap variasi acak.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+/* ======================================================================
+   DATA: Berlin52 dataset (TSPLIB) — 52 delivery destination coordinates
+   Known optimal tour length for this instance: 7542 (Reinelt, 1991)
+   ====================================================================== */
+const CITIES = [
+  [565,575],[25,185],[345,750],[945,685],[845,655],[880,660],[25,230],[525,1000],
+  [580,1175],[650,1130],[1605,620],[1220,580],[1465,200],[1530,5],[845,680],[725,370],
+  [145,665],[415,635],[510,875],[560,365],[300,465],[520,585],[480,415],[835,625],
+  [975,580],[1215,245],[1320,315],[1250,400],[660,180],[410,250],[420,555],[575,665],
+  [1150,1160],[700,580],[685,595],[685,610],[770,610],[795,645],[720,635],[760,650],
+  [475,960],[95,260],[875,920],[700,500],[555,815],[830,485],[1170,65],[830,610],
+  [605,625],[595,360],[1340,725],[1740,245]
+];
+const N_CITIES = CITIES.length;
+const KNOWN_OPTIMAL = 7542;
+const DEPOT_INDEX = 0;
+
+function buildDistMatrix(cities) {
+  const n = cities.length;
+  const d = Array.from({ length: n }, () => new Float64Array(n));
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const dx = cities[i][0] - cities[j][0];
+      const dy = cities[i][1] - cities[j][1];
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      d[i][j] = dist;
+      d[j][i] = dist;
+    }
+  }
+  return d;
+}
+
+const DIST = buildDistMatrix(CITIES);
+
+function tourLength(tour, D) {
+  let total = 0;
+  const n = tour.length;
+  for (let i = 0; i < n; i++) total += D[tour[i]][tour[(i + 1) % n]];
+  return total;
+}
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function rotateTourToDepot(tour, depot) {
+  const idx = tour.indexOf(depot);
+  if (idx <= 0) return tour.slice();
+  return tour.slice(idx).concat(tour.slice(0, idx));
+}
+
+/* ======================================================================
+   ALGORITHM 1: Genetic Algorithm (GA)
+   Representasi permutasi · seleksi turnamen · order crossover (OX)
+   · mutasi segment-reversal · elitisme
+   ====================================================================== */
+function tournamentSelect(pop, lengths, k) {
+  let bestIdx = Math.floor(Math.random() * pop.length);
+  let bestLen = lengths[bestIdx];
+  for (let i = 1; i < k; i++) {
+    const idx = Math.floor(Math.random() * pop.length);
+    if (lengths[idx] < bestLen) { bestLen = lengths[idx]; bestIdx = idx; }
+  }
+  return pop[bestIdx];
+}
+
+function orderCrossover(p1, p2) {
+  const n = p1.length;
+  let start = Math.floor(Math.random() * n);
+  let end = Math.floor(Math.random() * n);
+  if (start > end) [start, end] = [end, start];
+
+  const child = new Array(n).fill(-1);
+  const inChild = new Set();
+  for (let i = start; i <= end; i++) { child[i] = p1[i]; inChild.add(p1[i]); }
+
+  let p2Idx = (end + 1) % n;
+  let writeIdx = (end + 1) % n;
+  while (writeIdx !== start) {
+    while (inChild.has(p2[p2Idx])) p2Idx = (p2Idx + 1) % n;
+    child[writeIdx] = p2[p2Idx];
+    inChild.add(p2[p2Idx]);
+    writeIdx = (writeIdx + 1) % n;
+  }
+  return child;
+}
+
+function reversalMutation(tour, rate) {
+  const t = tour.slice();
+  if (Math.random() < rate) {
+    let i = Math.floor(Math.random() * t.length);
+    let j = Math.floor(Math.random() * t.length);
+    if (i > j) [i, j] = [j, i];
+    while (i < j) { [t[i], t[j]] = [t[j], t[i]]; i++; j--; }
+  }
+  return t;
+}
+
+function runGA(D, n, opts) {
+  const {
+    populationSize = 100, generations = 200, tournamentK = 5,
+    mutationRate = 0.15, eliteCount = 2,
+  } = opts || {};
+
+  let population = [];
+  for (let i = 0; i < populationSize; i++) population.push(shuffleArray([...Array(n).keys()]));
+
+  const history = [];
+  let bestTour = null, bestLen = Infinity;
+
+  for (let gen = 0; gen < generations; gen++) {
+    const lengths = population.map((t) => tourLength(t, D));
+    for (let i = 0; i < population.length; i++) {
+      if (lengths[i] < bestLen) { bestLen = lengths[i]; bestTour = population[i]; }
+    }
+    history.push(bestLen);
+
+    const ranked = population.map((t, i) => ({ t, len: lengths[i] })).sort((a, b) => a.len - b.len);
+    const newPop = [];
+    for (let i = 0; i < eliteCount; i++) newPop.push(ranked[i].t);
+    while (newPop.length < populationSize) {
+      const parent1 = tournamentSelect(population, lengths, tournamentK);
+      const parent2 = tournamentSelect(population, lengths, tournamentK);
+      let child = orderCrossover(parent1, parent2);
+      child = reversalMutation(child, mutationRate);
+      newPop.push(child);
+    }
+    population = newPop;
+  }
+  return { bestTour: rotateTourToDepot(bestTour, DEPOT_INDEX), bestLen, history };
+}
+
+/* ======================================================================
+   ALGORITHM 2: Particle Swarm Optimization (PSO)
+   Adaptasi random-key encoding (Bean, 1994) untuk permasalahan permutasi
+   ====================================================================== */
+function decodeRandomKey(position) {
+  return position.map((val, idx) => [val, idx]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
+}
+
+function runPSO(D, n, opts) {
+  const {
+    swarmSize = 60, iterations = 200, w = 0.7, c1 = 1.5, c2 = 1.5, vMax = 0.3,
+  } = opts || {};
+
+  const positions = [], velocities = [];
+  for (let i = 0; i < swarmSize; i++) {
+    positions.push(Array.from({ length: n }, () => Math.random()));
+    velocities.push(Array.from({ length: n }, () => (Math.random() * 2 - 1) * 0.1));
+  }
+
+  const pbestPos = positions.map((p) => p.slice());
+  const pbestLen = positions.map((p) => tourLength(decodeRandomKey(p), D));
+
+  let gbestIdx = 0;
+  for (let i = 1; i < swarmSize; i++) if (pbestLen[i] < pbestLen[gbestIdx]) gbestIdx = i;
+  let gbestPos = pbestPos[gbestIdx].slice();
+  let gbestLen = pbestLen[gbestIdx];
+  let gbestTour = decodeRandomKey(gbestPos);
+
+  const history = [];
+
+  for (let iter = 0; iter < iterations; iter++) {
+    for (let i = 0; i < swarmSize; i++) {
+      for (let d = 0; d < n; d++) {
+        const r1 = Math.random(), r2 = Math.random();
+        let v = w * velocities[i][d] + c1 * r1 * (pbestPos[i][d] - positions[i][d]) + c2 * r2 * (gbestPos[d] - positions[i][d]);
+        v = Math.max(-vMax, Math.min(vMax, v));
+        velocities[i][d] = v;
+        positions[i][d] += v;
+      }
+      const tour = decodeRandomKey(positions[i]);
+      const len = tourLength(tour, D);
+      if (len < pbestLen[i]) {
+        pbestLen[i] = len; pbestPos[i] = positions[i].slice();
+        if (len < gbestLen) { gbestLen = len; gbestPos = positions[i].slice(); gbestTour = tour; }
+      }
+    }
+    history.push(gbestLen);
+  }
+  return { bestTour: rotateTourToDepot(gbestTour, DEPOT_INDEX), bestLen: gbestLen, history };
+}
+
+/* ======================================================================
+   ALGORITHM 3: Ant Colony Optimization (ACO) — Ant System
+   ====================================================================== */
+function runACO(D, n, opts) {
+  const {
+    antCount = 40, iterations = 200, alpha = 1, beta = 5, evaporation = 0.5, Q = 100,
+  } = opts || {};
+
+  let tau = Array.from({ length: n }, () => new Float64Array(n).fill(1));
+  const eta = Array.from({ length: n }, (_, i) => Float64Array.from({ length: n }, (_, j) => (i === j ? 0 : 1 / D[i][j])));
+
+  let bestTour = null, bestLen = Infinity;
+  const history = [];
+
+  for (let iter = 0; iter < iterations; iter++) {
+    const allTours = [], allLens = [];
+    for (let ant = 0; ant < antCount; ant++) {
+      const visited = new Uint8Array(n);
+      const start = Math.floor(Math.random() * n);
+      const tour = [start];
+      visited[start] = 1;
+      for (let step = 1; step < n; step++) {
+        const current = tour[tour.length - 1];
+        const probs = new Float64Array(n);
+        let sum = 0;
+        for (let j = 0; j < n; j++) {
+          if (!visited[j]) {
+            const p = Math.pow(tau[current][j], alpha) * Math.pow(eta[current][j], beta);
+            probs[j] = p; sum += p;
+          }
+        }
+        let next;
+        if (sum === 0) {
+          const candidates = [];
+          for (let j = 0; j < n; j++) if (!visited[j]) candidates.push(j);
+          next = candidates[Math.floor(Math.random() * candidates.length)];
+        } else {
+          const r = Math.random() * sum;
+          let acc = 0; next = -1;
+          for (let j = 0; j < n; j++) {
+            if (!visited[j]) { acc += probs[j]; if (acc >= r) { next = j; break; } }
+          }
+          if (next === -1) for (let j = 0; j < n; j++) if (!visited[j]) next = j;
+        }
+        tour.push(next); visited[next] = 1;
+      }
+      const len = tourLength(tour, D);
+      allTours.push(tour); allLens.push(len);
+      if (len < bestLen) { bestLen = len; bestTour = tour; }
+    }
+
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) tau[i][j] *= 1 - evaporation;
+    for (let ant = 0; ant < antCount; ant++) {
+      const tour = allTours[ant];
+      const deposit = Q / allLens[ant];
+      for (let i = 0; i < n; i++) {
+        const a = tour[i], b = tour[(i + 1) % n];
+        tau[a][b] += deposit; tau[b][a] += deposit;
+      }
+    }
+    history.push(bestLen);
+  }
+  return { bestTour: rotateTourToDepot(bestTour, DEPOT_INDEX), bestLen, history };
+}
+
+/* ======================================================================
+   ALGORITHM 4: Bee Colony Optimization (BCO) — ABC-style
+   Employed bee → onlooker bee (roulette wheel) → scout bee, dengan
+   local search berupa segment-reversal (gerakan 2-opt sederhana)
+   ====================================================================== */
+function neighborMove(tour) {
+  const t = tour.slice(); const n = t.length;
+  let i = Math.floor(Math.random() * n), j = Math.floor(Math.random() * n);
+  if (i > j) [i, j] = [j, i];
+  if (i === j) j = (j + 1) % n;
+  while (i < j) { [t[i], t[j]] = [t[j], t[i]]; i++; j--; }
+  return t;
+}
+
+function runBCO(D, n, opts) {
+  const { colonySize = 30, iterations = 200, limit = 50 } = opts || {};
+
+  let sources = [];
+  for (let i = 0; i < colonySize; i++) sources.push(shuffleArray([...Array(n).keys()]));
+  let lengths = sources.map((t) => tourLength(t, D));
+  const trial = new Array(colonySize).fill(0);
+
+  let bestTour = sources[0], bestLen = lengths[0];
+  for (let i = 1; i < colonySize; i++) if (lengths[i] < bestLen) { bestLen = lengths[i]; bestTour = sources[i]; }
+
+  const history = [];
+
+  for (let iter = 0; iter < iterations; iter++) {
+    for (let i = 0; i < colonySize; i++) {
+      const candidate = neighborMove(sources[i]);
+      const candLen = tourLength(candidate, D);
+      if (candLen < lengths[i]) { sources[i] = candidate; lengths[i] = candLen; trial[i] = 0; }
+      else trial[i]++;
+    }
+
+    const fitness = lengths.map((l) => 1 / (1 + l));
+    const fitSum = fitness.reduce((a, b) => a + b, 0);
+    for (let k = 0; k < colonySize; k++) {
+      const r = Math.random() * fitSum;
+      let acc = 0, chosen = colonySize - 1;
+      for (let i = 0; i < colonySize; i++) { acc += fitness[i]; if (acc >= r) { chosen = i; break; } }
+      const candidate = neighborMove(sources[chosen]);
+      const candLen = tourLength(candidate, D);
+      if (candLen < lengths[chosen]) { sources[chosen] = candidate; lengths[chosen] = candLen; trial[chosen] = 0; }
+      else trial[chosen]++;
+    }
+
+    for (let i = 0; i < colonySize; i++) {
+      if (trial[i] >= limit) { sources[i] = shuffleArray([...Array(n).keys()]); lengths[i] = tourLength(sources[i], D); trial[i] = 0; }
+    }
+    for (let i = 0; i < colonySize; i++) if (lengths[i] < bestLen) { bestLen = lengths[i]; bestTour = sources[i]; }
+    history.push(bestLen);
+  }
+  return { bestTour: rotateTourToDepot(bestTour, DEPOT_INDEX), bestLen, history };
+}
+
+/* ======================================================================
+   ALGORITHM REGISTRY
+   ====================================================================== */
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+const ALGOS = {
+  GA:  { key:'GA',  label:'GA',  full:'Genetic Algorithm',            icon:'🧬', gradVar:'var(--ga-grad)',  c1v:'--ga-1',  c2v:'--ga-2',  onVar:'var(--ga-on)',  run: runGA,
+         mechanism:'mekanisme seleksi, crossover, dan mutasi pada populasi kromosom permutasi',
+         defaults:{ populationSize:100, generations:200, mutationRate:0.15 } },
+  PSO: { key:'PSO', label:'PSO', full:'Particle Swarm Optimization',  icon:'🐦', gradVar:'var(--pso-grad)', c1v:'--pso-1', c2v:'--pso-2', onVar:'var(--pso-on)', run: runPSO,
+         mechanism:'pergerakan partikel menuju posisi terbaik individu & kelompok melalui random-key encoding',
+         defaults:{ swarmSize:60, iterations:200 } },
+  ACO: { key:'ACO', label:'ACO', full:'Ant Colony Optimization',      icon:'🐜', gradVar:'var(--aco-grad)', c1v:'--aco-1', c2v:'--aco-2', onVar:'var(--aco-on)', run: runACO,
+         mechanism:'mekanisme feromon yang memperkuat jalur terbaik secara bertahap',
+         defaults:{ antCount:40, iterations:200 } },
+  BCO: { key:'BCO', label:'BCO', full:'Bee Colony Optimization',      icon:'🐝', gradVar:'var(--bco-grad)', c1v:'--bco-1', c2v:'--bco-2', onVar:'var(--bco-on)', run: runBCO,
+         mechanism:'fase employed–onlooker–scout bee yang menyeimbangkan eksplorasi & eksploitasi',
+         defaults:{ colonySize:30, iterations:200 } },
+};
+const ALGO_ORDER = ['GA','PSO','ACO','BCO'];
+
+// Resolve actual hex stops once the stylesheet is available (used by canvas/SVG,
+// which cannot reference CSS custom properties directly).
+function resolveAlgoColors() {
+  ALGO_ORDER.forEach(k => {
+    const a = ALGOS[k];
+    a.hex1 = cssVar(a.c1v) || '#999999';
+    a.hex2 = cssVar(a.c2v) || '#666666';
+    a.on = cssVar(a.onVar) || '#ffffff';
+  });
+}
+
+const state = {
+  results: {},      // key -> { bestTour, bestLen, history, timeSec }
+  experiment: {},   // key -> { trials:[{len,time}], meanLen, stdLen, meanTime }
+  activeMapAlgo: null,
+};
+
+/* ======================================================================
+   SVG MAP RENDERING
+   ====================================================================== */
+const MAP_PAD = 40;
+const MAP_W = 1000, MAP_H = 560;
+function svgCoord(city) {
+  const xs = CITIES.map(c=>c[0]), ys = CITIES.map(c=>c[1]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const sx = (MAP_W-2*MAP_PAD)/(maxX-minX);
+  const sy = (MAP_H-2*MAP_PAD)/(maxY-minY);
+  const s = Math.min(sx,sy);
+  const offX = MAP_PAD + ((MAP_W-2*MAP_PAD)-(maxX-minX)*s)/2;
+  const offY = MAP_PAD + ((MAP_H-2*MAP_PAD)-(maxY-minY)*s)/2;
+  const x = offX + (city[0]-minX)*s;
+  const y = MAP_H - (offY + (city[1]-minY)*s); // flip Y so it reads like a map
+  return [x,y];
+}
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function buildLinearGradient(id, c1, c2) {
+  const grad = svgEl('linearGradient', { id, x1:'0%', y1:'0%', x2:'100%', y2:'100%' });
+  grad.appendChild(svgEl('stop', { offset:'0%', 'stop-color': c1 }));
+  grad.appendChild(svgEl('stop', { offset:'100%', 'stop-color': c2 }));
+  return grad;
+}
+
+function ensureDefs(svg) {
+  let defs = svg.querySelector('defs');
+  if (!defs) { defs = svgEl('defs', {}); svg.insertBefore(defs, svg.firstChild); }
+  while (defs.firstChild) defs.removeChild(defs.firstChild);
+  defs.appendChild(buildLinearGradient('grad-depot', cssVar('--hero-1'), cssVar('--hero-2')));
+  ALGO_ORDER.forEach(k => {
+    const a = ALGOS[k];
+    defs.appendChild(buildLinearGradient('grad-'+k, a.hex1, a.hex2));
+  });
+  return defs;
+}
+
+function renderCityDots(svg) {
+  CITIES.forEach((c, i) => {
+    const [x,y] = svgCoord(c);
+    const isDepot = i === DEPOT_INDEX;
+    const dot = svgEl('circle', { cx:x, cy:y, r: isDepot?7.5:3.6, class: isDepot?'city-dot depot':'city-dot' });
+    if (isDepot) dot.setAttribute('style', 'fill:url(#grad-depot)');
+    const title = svgEl('title', {});
+    title.textContent = isDepot ? `Depot (kota #${i+1})` : `Kota #${i+1}`;
+    dot.appendChild(title);
+    svg.appendChild(dot);
+  });
+}
+
+function renderMap(svg, tour, algoKey, opts) {
+  opts = opts || {};
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  ensureDefs(svg);
+  if (tour && algoKey) {
+    const pts = tour.map(i => svgCoord(CITIES[i]));
+    pts.push(pts[0]);
+    const d = 'M ' + pts.map(p => p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L ');
+    const path = svgEl('path', { d, class: 'route-path' + (opts.animate ? ' route-anim' : '') });
+    path.setAttribute('style', `stroke:url(#grad-${algoKey})`);
+    svg.appendChild(path);
+  }
+  renderCityDots(svg);
+}
+
+
+/* ======================================================================
+   CANVAS CHART RENDERING
+   ====================================================================== */
+function resizeCanvasForDPR(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || canvas.width;
+  const h = canvas.getAttribute('data-h') ? +canvas.getAttribute('data-h') : canvas.height;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.height = h+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { ctx, w, h };
+}
+
+function drawBarChart(canvas, items) {
+  // items: [{label, value, hex1, hex2}]
+  canvas.setAttribute('data-h', 280);
+  const { ctx, w, h } = resizeCanvasForDPR(canvas);
+  ctx.clearRect(0,0,w,h);
+  const padL=58, padB=34, padT=18, padR=18;
+  const plotW = w-padL-padR, plotH = h-padT-padB;
+  const maxVal = Math.max(...items.map(it=>it.value), 1) * 1.15;
+
+  ctx.strokeStyle = 'rgba(99,102,241,0.12)';
+  ctx.lineWidth = 1;
+  ctx.font = '11px ui-monospace, monospace';
+  ctx.fillStyle = '#A39CC2';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for (let i=0;i<=4;i++){
+    const gy = padT + plotH - (plotH*i/4);
+    ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL+plotW, gy); ctx.stroke();
+    ctx.fillText(Math.round(maxVal*i/4).toLocaleString('id-ID'), padL-8, gy);
+  }
+
+  const n = items.length;
+  const slot = plotW/n;
+  const barW = Math.min(54, slot*0.5);
+  items.forEach((it,i)=>{
+    const cx = padL + slot*i + slot/2;
+    const barH = (it.value/maxVal)*plotH;
+    const y = padT+plotH-barH;
+    const grad = ctx.createLinearGradient(0, y, 0, padT+plotH);
+    grad.addColorStop(0, it.hex1);
+    grad.addColorStop(1, it.hex2);
+    ctx.fillStyle = grad;
+    const r=8;
+    ctx.beginPath();
+    ctx.moveTo(cx-barW/2, y+r);
+    ctx.arcTo(cx-barW/2,y,cx-barW/2+r,y,r);
+    ctx.lineTo(cx+barW/2-r,y);
+    ctx.arcTo(cx+barW/2,y,cx+barW/2,y+r,r);
+    ctx.lineTo(cx+barW/2,padT+plotH);
+    ctx.lineTo(cx-barW/2,padT+plotH);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#211B3D';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.font='700 12px ui-monospace, monospace';
+    ctx.fillText(it.value.toLocaleString('id-ID', {maximumFractionDigits:0}), cx, y-8);
+
+    ctx.fillStyle = '#6B6386';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.font='600 11.5px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(it.label, cx, padT+plotH+10);
+  });
+}
+
+function drawConvergenceChart(canvas, series) {
+  // series: [{label, hex1, history:[...]}]
+  canvas.setAttribute('data-h', 320);
+  const { ctx, w, h } = resizeCanvasForDPR(canvas);
+  ctx.clearRect(0,0,w,h);
+  const padL=64, padB=34, padT=18, padR=18;
+  const plotW = w-padL-padR, plotH = h-padT-padB;
+
+  const maxIter = Math.max(...series.map(s=>s.history.length), 1);
+  const maxVal = Math.max(...series.flatMap(s=>s.history), 1) * 1.08;
+  const minVal = 0;
+
+  ctx.strokeStyle = 'rgba(99,102,241,0.12)';
+  ctx.lineWidth = 1;
+  ctx.font = '11px ui-monospace, monospace';
+  ctx.fillStyle = '#A39CC2';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for (let i=0;i<=4;i++){
+    const gy = padT + plotH - (plotH*i/4);
+    ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL+plotW, gy); ctx.stroke();
+    ctx.fillText(Math.round(minVal + (maxVal-minVal)*i/4).toLocaleString('id-ID'), padL-8, gy);
+  }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for (let i=0;i<=4;i++){
+    const gx = padL + plotW*i/4;
+    ctx.fillText(Math.round(maxIter*i/4), gx, padT+plotH+10);
+  }
+  ctx.fillStyle='#6B6386'; ctx.font='600 11px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('iterasi / generasi →', padL+plotW/2, padT+plotH+24);
+
+  series.forEach(s=>{
+    if (!s.history.length) return;
+    ctx.strokeStyle = s.hex1;
+    ctx.lineWidth = 2.6;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    s.history.forEach((v,i)=>{
+      const x = padL + (i/(maxIter-1||1))*plotW;
+      const y = padT + plotH - ((v-minVal)/(maxVal-minVal))*plotH;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    // extend flat line if this series finished earlier than maxIter
+    if (s.history.length < maxIter) {
+      const lastV = s.history[s.history.length-1];
+      const y = padT + plotH - ((lastV-minVal)/(maxVal-minVal))*plotH;
+      ctx.lineTo(padL+plotW, y);
+    }
+    ctx.stroke();
+  });
+}
+
+function drawSparkline(canvas, history, hex1, hex2) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  if (!history || !history.length) return;
+  const maxV = Math.max(...history), minV = Math.min(...history);
+  const range = (maxV-minV) || 1;
+  const grad = ctx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0, hex1); grad.addColorStop(1, hex2 || hex1);
+  ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.beginPath();
+  history.forEach((v,i)=>{
+    const x = (i/(history.length-1||1))*(w-4)+2;
+    const y = h-4 - ((v-minV)/range)*(h-8);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+/* ======================================================================
+   FORMATTING HELPERS (gaya penulisan angka Indonesia: 7.658,96)
+   ====================================================================== */
+function fmt(n, decimals) {
+  decimals = decimals === undefined ? 2 : decimals;
+  return n.toLocaleString('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+function fmtInt(n) { return Math.round(n).toLocaleString('id-ID'); }
+
+/* ======================================================================
+   ALGORITHM CARD UI
+   ====================================================================== */
+function paramFieldsHTML(key) {
+  if (key === 'GA') return `
+    <div class="field-row">
+      <div><label class="field">Ukuran Populasi</label><input type="number" id="GA-populationSize" value="100" min="20" max="300" step="10"></div>
+      <div><label class="field">Generasi</label><input type="number" id="GA-generations" value="200" min="50" max="500" step="10"></div>
+    </div>
+    <div class="field-row">
+      <div><label class="field">Laju Mutasi</label><input type="number" id="GA-mutationRate" value="0.15" min="0.01" max="0.9" step="0.01"></div>
+    </div>`;
+  if (key === 'PSO') return `
+    <div class="field-row">
+      <div><label class="field">Ukuran Swarm</label><input type="number" id="PSO-swarmSize" value="60" min="20" max="300" step="10"></div>
+      <div><label class="field">Iterasi</label><input type="number" id="PSO-iterations" value="200" min="50" max="500" step="10"></div>
+    </div>`;
+  if (key === 'ACO') return `
+    <div class="field-row">
+      <div><label class="field">Jumlah Semut</label><input type="number" id="ACO-antCount" value="40" min="10" max="200" step="5"></div>
+      <div><label class="field">Iterasi</label><input type="number" id="ACO-iterations" value="200" min="50" max="500" step="10"></div>
+    </div>`;
+  if (key === 'BCO') return `
+    <div class="field-row">
+      <div><label class="field">Ukuran Koloni</label><input type="number" id="BCO-colonySize" value="30" min="10" max="200" step="5"></div>
+      <div><label class="field">Iterasi</label><input type="number" id="BCO-iterations" value="200" min="50" max="500" step="10"></div>
+    </div>`;
+  return '';
+}
+
+function readParams(key) {
+  const p = {};
+  document.querySelectorAll(`[id^="${key}-"]`).forEach(inp => {
+    const field = inp.id.slice(key.length+1);
+    p[field] = parseFloat(inp.value);
+  });
+  return p;
+}
+
+function buildAlgoCards() {
+  const wrap = document.getElementById('algo-cards');
+  wrap.innerHTML = ALGO_ORDER.map(key => {
+    const a = ALGOS[key];
+    return `
+    <div class="algo-card" id="card-${key}">
+      <div class="gradhead" style="background:${a.gradVar}"></div>
+      <div class="ahead">
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div class="aicon" style="background:${a.gradVar}">${a.icon}</div>
+          <div>
+            <div class="aname">${a.full}</div>
+            <div class="afull">${a.label}</div>
+          </div>
+        </div>
+        <span class="status-pill" id="status-${key}">Belum jalan</span>
+      </div>
+      <div class="stat-row"><span>Best Distance</span><b id="dist-${key}">—</b></div>
+      <div class="stat-row"><span>Waktu Komputasi</span><b id="time-${key}">—</b></div>
+      <canvas class="spark" id="spark-${key}" width="280" height="46"></canvas>
+      <button class="btn btn-sm btn-block" id="run-${key}" style="background:${a.gradVar};color:${a.onVar};border-color:transparent;">▶ Jalankan ${a.label}</button>
+      <details class="adv"><summary>Parameter lanjutan</summary>${paramFieldsHTML(key)}</details>
+    </div>`;
+  }).join('');
+
+  ALGO_ORDER.forEach(key => {
+    document.getElementById(`run-${key}`).addEventListener('click', () => handleRun(key));
+  });
+}
+
+function buildAlgoToggle() {
+  const wrap = document.getElementById('algo-toggle');
+  wrap.innerHTML = ALGO_ORDER.map(key => {
+    const a = ALGOS[key];
+    return `<button class="algo-pill" id="pill-${key}" data-key="${key}" data-grad="${a.gradVar}" data-on="${a.onVar}">${a.icon} ${a.label}</button>`;
+  }).join('');
+  ALGO_ORDER.forEach(key => {
+    document.getElementById(`pill-${key}`).addEventListener('click', () => {
+      if (!state.results[key]) return;
+      state.activeMapAlgo = key;
+      refreshOptimasiMap();
+    });
+  });
+}
+
+function setPillStyles() {
+  ALGO_ORDER.forEach(key => {
+    const pill = document.getElementById(`pill-${key}`);
+    const has = !!state.results[key];
+    const active = state.activeMapAlgo === key;
+    pill.style.opacity = has ? '1' : '0.4';
+    pill.style.cursor = has ? 'pointer' : 'default';
+    pill.style.background = active ? ALGOS[key].gradVar : 'var(--surface)';
+    pill.style.color = active ? ALGOS[key].onVar : 'var(--muted)';
+    pill.style.borderColor = active ? 'transparent' : 'var(--line)';
+    pill.setAttribute('data-active', active ? 'true' : 'false');
+  });
+}
+
+function refreshOptimasiMap() {
+  const svg = document.getElementById('map-optimasi');
+  const note = document.getElementById('map-optimasi-note');
+  const titleEl = document.getElementById('map-optimasi-title');
+  const key = state.activeMapAlgo;
+  if (key && state.results[key]) {
+    const r = state.results[key];
+    renderMap(svg, r.bestTour, key, { animate:true });
+    note.textContent = `Menampilkan rute dari ${ALGOS[key].full} (${key}) — total jarak ${fmt(r.bestLen)} · ${r.bestTour.length} kota.`;
+    titleEl.textContent = `Rute hasil algoritma — ${key}`;
+  } else {
+    renderMap(svg, null, null);
+    note.textContent = 'Belum ada rute — jalankan salah satu algoritma di panel kanan.';
+    titleEl.textContent = 'Rute hasil algoritma';
+  }
+  setPillStyles();
+}
+
+/* ======================================================================
+   RUN HANDLERS
+   ====================================================================== */
+function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+async function handleRun(key) {
+  const btn = document.getElementById(`run-${key}`);
+  const statusEl = document.getElementById(`status-${key}`);
+  ALGO_ORDER.forEach(k => document.getElementById(`run-${k}`).disabled = true);
+  document.getElementById('btn-run-all').disabled = true;
+  statusEl.textContent = 'Menjalankan…';
+  statusEl.classList.remove('done');
+  btn.innerHTML = `<span class="pulse"></span> Menjalankan…`;
+  await sleep(30); // let UI paint before heavy synchronous computation
+
+  const params = Object.assign({}, ALGOS[key].defaults, readParams(key));
+  const t0 = performance.now();
+  const result = ALGOS[key].run(DIST, N_CITIES, params);
+  const t1 = performance.now();
+  const timeSec = (t1 - t0) / 1000;
+
+  state.results[key] = Object.assign({}, result, { timeSec });
+  state.activeMapAlgo = key;
+
+  document.getElementById(`dist-${key}`).textContent = fmt(result.bestLen);
+  document.getElementById(`time-${key}`).textContent = fmt(timeSec) + ' s';
+  drawSparkline(document.getElementById(`spark-${key}`), result.history, ALGOS[key].hex1, ALGOS[key].hex2);
+  statusEl.textContent = 'Selesai';
+  statusEl.classList.add('done');
+  statusEl.style.background = ALGOS[key].gradVar;
+  statusEl.style.color = ALGOS[key].onVar;
+  btn.innerHTML = `↻ Jalankan Ulang ${ALGOS[key].label}`;
+
+  ALGO_ORDER.forEach(k => document.getElementById(`run-${k}`).disabled = false);
+  document.getElementById('btn-run-all').disabled = false;
+
+  refreshOptimasiMap();
+  refreshEvaluationCharts();
+  refreshOutputSection();
+}
+
+async function handleRunAll() {
+  const allBtn = document.getElementById('btn-run-all');
+  allBtn.disabled = true;
+  allBtn.innerHTML = `<span class="pulse"></span> Menjalankan seluruh algoritma…`;
+  for (const key of ALGO_ORDER) {
+    await handleRun(key);
+  }
+  allBtn.disabled = false;
+  allBtn.innerHTML = '↻ Jalankan Ulang Semua & Bandingkan';
+}
+
+/* ======================================================================
+   EVALUASI: bar charts + convergence overlay
+   ====================================================================== */
+function refreshEvaluationCharts() {
+  const ranKeys = ALGO_ORDER.filter(k => state.results[k]);
+  const progress = document.getElementById('eval-progress');
+  if (progress) {
+    progress.textContent = ranKeys.length < ALGO_ORDER.length
+      ? `${ranKeys.length} dari 4 algoritma telah dijalankan — grafik di bawah terisi otomatis setiap kali Anda menjalankan algoritma pada langkah 3.`
+      : `Keempat algoritma telah dijalankan — grafik di bawah mencerminkan eksekusi terakhir masing-masing.`;
+  }
+  if (!ranKeys.length) return;
+
+  drawBarChart(document.getElementById('chart-distance'), ranKeys.map(k => ({
+    label:k, value: state.results[k].bestLen, hex1: ALGOS[k].hex1, hex2: ALGOS[k].hex2
+  })));
+  drawBarChart(document.getElementById('chart-time'), ranKeys.map(k => ({
+    label:k, value: state.results[k].timeSec, hex1: ALGOS[k].hex1, hex2: ALGOS[k].hex2
+  })));
+  drawConvergenceChart(document.getElementById('chart-convergence'), ranKeys.map(k => ({
+    label:k, hex1: ALGOS[k].hex1, history: state.results[k].history
+  })));
+
+  document.getElementById('convergence-legend').innerHTML = ranKeys.map(k =>
+    `<span class="legend-item"><span class="swatch" style="background:${ALGOS[k].gradVar}"></span>${ALGOS[k].full} (${k})</span>`
+  ).join('');
+}
+
+/* ======================================================================
+   EKSPERIMEN MULTI-TRIAL
+   ====================================================================== */
+async function handleRunExperiment() {
+  const trialCount = parseInt(document.getElementById('trial-count').value, 10);
+  const statusEl = document.getElementById('experiment-status');
+  const btn = document.getElementById('btn-run-experiment');
+  btn.disabled = true;
+
+  state.experiment = {};
+  for (const key of ALGO_ORDER) {
+    const params = Object.assign({}, ALGOS[key].defaults, readParams(key));
+    const lens = [], times = [];
+    for (let t = 0; t < trialCount; t++) {
+      statusEl.innerHTML = `<span class="pulse"></span> Menjalankan eksperimen ${key} — percobaan ${t+1} dari ${trialCount}…`;
+      await sleep(20);
+      const t0 = performance.now();
+      const r = ALGOS[key].run(DIST, N_CITIES, params);
+      const t1 = performance.now();
+      lens.push(r.bestLen);
+      times.push((t1-t0)/1000);
+    }
+    const meanLen = lens.reduce((a,b)=>a+b,0)/lens.length;
+    const stdLen = Math.sqrt(lens.reduce((a,b)=>a+(b-meanLen)**2,0)/lens.length);
+    const meanTime = times.reduce((a,b)=>a+b,0)/times.length;
+    state.experiment[key] = { trials: lens, meanLen, stdLen, meanTime, minLen: Math.min(...lens), maxLen: Math.max(...lens) };
+  }
+
+  statusEl.textContent = `Eksperimen selesai — ${trialCount}× percobaan per algoritma pada parameter saat ini.`;
+  btn.disabled = false;
+  renderExperimentTable();
+}
+
+function renderExperimentTable() {
+  const wrap = document.getElementById('experiment-table-wrap');
+  const keys = ALGO_ORDER.filter(k => state.experiment[k]);
+  if (!keys.length) { wrap.innerHTML = ''; return; }
+  const sorted = keys.slice().sort((a,b)=>state.experiment[a].meanLen - state.experiment[b].meanLen);
+
+  wrap.innerHTML = `<table class="cmp">
+    <thead><tr>
+      <th>Algoritma</th><th>Rata-rata Distance</th><th>Std. Deviasi</th>
+      <th>Min / Max</th><th>Rata-rata Waktu</th><th>Koef. Variasi</th>
+    </tr></thead>
+    <tbody>
+      ${sorted.map((k,i)=>{
+        const e = state.experiment[k];
+        const cv = (e.stdLen/e.meanLen*100);
+        return `<tr class="${i===0?'rank1-row':''}">
+          <td class="${i===0?'rank1':''}"><span class="algo-tag"><span class="swatch" style="background:${ALGOS[k].gradVar}"></span>${k}</span></td>
+          <td class="${i===0?'rank1':''}">${fmt(e.meanLen)}</td>
+          <td>±${fmt(e.stdLen)}</td>
+          <td>${fmt(e.minLen,0)} / ${fmt(e.maxLen,0)}</td>
+          <td>${fmt(e.meanTime)} s</td>
+          <td>${fmt(cv,1)}%</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+/* ======================================================================
+   OUTPUT: rute terbaik, ranking, analisis otomatis
+   ====================================================================== */
+function refreshOutputSection() {
+  const ranKeys = ALGO_ORDER.filter(k => state.results[k]);
+  const rankingWrap = document.getElementById('ranking-table-wrap');
+  if (!ranKeys.length) { rankingWrap.innerHTML = '<p class="analysis-empty">Belum ada hasil.</p>'; return; }
+
+  const sorted = ranKeys.slice().sort((a,b)=>state.results[a].bestLen - state.results[b].bestLen);
+  const winnerKey = sorted[0];
+  const winner = state.results[winnerKey];
+
+  renderMap(document.getElementById('map-output'), winner.bestTour, winnerKey, { animate:true });
+  document.getElementById('winner-badge').innerHTML = `<span class="swatch" style="background:${ALGOS[winnerKey].gradVar}"></span>${ALGOS[winnerKey].full}`;
+
+  const gapPct = ((winner.bestLen - KNOWN_OPTIMAL)/KNOWN_OPTIMAL*100);
+  document.getElementById('output-stats').innerHTML = `
+    <div class="s"><span class="v">${fmt(winner.bestLen)}</span><span class="l">Best distance</span></div>
+    <div class="s"><span class="v">+${fmt(gapPct,1)}%</span><span class="l">Selisih dari optimal (${KNOWN_OPTIMAL})</span></div>
+    <div class="s"><span class="v">${fmt(winner.timeSec)} s</span><span class="l">Waktu komputasi</span></div>`;
+
+  rankingWrap.innerHTML = `<table class="cmp">
+    <thead><tr><th>#</th><th>Algoritma</th><th>Best Distance</th><th>Selisih Optimal</th><th>Waktu</th></tr></thead>
+    <tbody>
+      ${sorted.map((k,i)=>{
+        const r = state.results[k];
+        const g = ((r.bestLen-KNOWN_OPTIMAL)/KNOWN_OPTIMAL*100);
+        return `<tr class="${i===0?'rank1-row':''}">
+          <td class="${i===0?'rank1':''}">${i+1}</td>
+          <td class="${i===0?'rank1':''}"><span class="algo-tag"><span class="swatch" style="background:${ALGOS[k].gradVar}"></span>${k}</span></td>
+          <td class="${i===0?'rank1':''}">${fmt(r.bestLen)}</td>
+          <td>+${fmt(g,1)}%</td>
+          <td>${fmt(r.timeSec)} s</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+
+  generateAnalysis();
+}
+
+function generateAnalysis() {
+  const ranKeys = ALGO_ORDER.filter(k => state.results[k]);
+  const box = document.getElementById('analysis-content');
+  if (ranKeys.length < ALGO_ORDER.length) {
+    const missing = ALGO_ORDER.filter(k => !state.results[k]);
+    box.className = 'analysis-empty';
+    box.textContent = `Sudah dijalankan: ${ranKeys.join(', ') || '(belum ada)'}. Jalankan juga ${missing.join(', ')} pada langkah 3 untuk mendapatkan rekomendasi akhir yang lengkap.`;
+    return;
+  }
+
+  const sorted = ranKeys.slice().sort((a,b)=>state.results[a].bestLen - state.results[b].bestLen);
+  const fastest = ranKeys.slice().sort((a,b)=>state.results[a].timeSec - state.results[b].timeSec)[0];
+  const winnerKey = sorted[0];
+  const worstKey = sorted[sorted.length-1];
+  const winner = state.results[winnerKey];
+  const gapPct = ((winner.bestLen - KNOWN_OPTIMAL)/KNOWN_OPTIMAL*100);
+
+  let html = `<p><b style="color:${ALGOS[winnerKey].hex1}">${ALGOS[winnerKey].full} (${winnerKey})</b> menghasilkan rute dengan total jarak tempuh terbaik, yaitu <b>${fmt(winner.bestLen)}</b> — hanya berselisih sekitar <b>${fmt(gapPct,1)}%</b> dari solusi optimal yang diketahui untuk dataset Berlin52 (7.542). Hasil ini didorong oleh ${ALGOS[winnerKey].mechanism}.</p>`;
+
+  if (fastest !== winnerKey) {
+    html += `<p><b style="color:${ALGOS[fastest].hex1}">${ALGOS[fastest].full} (${fastest})</b> mencatat waktu komputasi tercepat (${fmt(state.results[fastest].timeSec)} detik), namun menghasilkan jarak tempuh ${fmt(state.results[fastest].bestLen)} — menunjukkan trade-off klasik antara kecepatan eksplorasi dan kualitas solusi akhir.</p>`;
+  }
+
+  html += `<p><b style="color:${ALGOS[worstKey].hex1}">${ALGOS[worstKey].full} (${worstKey})</b> berada di posisi paling bawah pada eksekusi ini dengan jarak ${fmt(state.results[worstKey].bestLen)}.</p>`;
+
+  html += `<p><b>Rekomendasi:</b> berdasarkan kriteria kemampuan menemukan rute terpendek, kesesuaian terhadap struktur permasalahan TSP, dan kestabilan solusi, <b style="color:${ALGOS[winnerKey].hex1}">${ALGOS[winnerKey].full} (${winnerKey})</b> direkomendasikan sebagai metode utama untuk diterapkan pada sistem optimasi rute pengiriman barang ini.</p>`;
+
+  if (Object.keys(state.experiment).length === ALGO_ORDER.length) {
+    const expSorted = ALGO_ORDER.slice().sort((a,b)=>state.experiment[a].meanLen - state.experiment[b].meanLen);
+    const expWinner = expSorted[0];
+    html += `<p style="border-top:1px solid var(--line);padding-top:12px;margin-top:14px;"><b>Validasi multi-trial:</b> pada eksperimen berulang, <b style="color:${ALGOS[expWinner].hex1}">${ALGOS[expWinner].full}</b> tetap memiliki rata-rata jarak terbaik (${fmt(state.experiment[expWinner].meanLen)} ± ${fmt(state.experiment[expWinner].stdLen)}), ${expWinner===winnerKey?'konsisten dengan hasil eksekusi tunggal di atas.':'sedikit berbeda dari hasil eksekusi tunggal di atas — ini menegaskan pentingnya pengujian berulang sebelum menarik kesimpulan akhir.'}</p>`;
+  }
+
+  box.className = '';
+  box.innerHTML = html;
+}
+
+/* ======================================================================
+   PREPROCESSING STATS
+   ====================================================================== */
+function renderPreprocessingStats() {
+  let sum = 0, count = 0, min = Infinity, max = -Infinity;
+  for (let i = 0; i < N_CITIES; i++) {
+    for (let j = i+1; j < N_CITIES; j++) {
+      const d = DIST[i][j];
+      sum += d; count++;
+      if (d < min) min = d;
+      if (d > max) max = d;
+    }
+  }
+  const avg = sum/count;
+  const el = document.getElementById('preprocessing-stats');
+  el.innerHTML = `
+    <div class="s"><span class="v">52 × 52</span><span class="l">Ukuran matriks jarak</span></div>
+    <div class="s"><span class="v">${fmt(avg,1)}</span><span class="l">Jarak rata-rata antar kota</span></div>
+    <div class="s"><span class="v">${fmt(min,1)}</span><span class="l">Jarak terpendek (tetangga terdekat)</span></div>
+    <div class="s"><span class="v">${fmt(max,1)}</span><span class="l">Jarak terjauh</span></div>`;
+}
+
+/* ======================================================================
+   STEPPER SCROLL BEHAVIOR
+   ====================================================================== */
+function initStepper() {
+  const nodes = document.querySelectorAll('.step-node');
+  nodes.forEach(node => {
+    node.addEventListener('click', () => {
+      document.getElementById(node.dataset.target).scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+  const sections = Array.from(document.querySelectorAll('section.stage'));
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        nodes.forEach(n => n.classList.toggle('active', n.dataset.target === entry.target.id));
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+}
+
+/* ======================================================================
+   INIT
+   ====================================================================== */
+function init() {
+  resolveAlgoColors();
+  renderMap(document.getElementById('map-input'), null, null);
+  renderPreprocessingStats();
+  buildAlgoCards();
+  buildAlgoToggle();
+  refreshOptimasiMap();
+
+  document.getElementById('btn-run-all').addEventListener('click', handleRunAll);
+  document.getElementById('btn-run-experiment').addEventListener('click', handleRunExperiment);
+
+  initStepper();
+  window.addEventListener('resize', () => { refreshEvaluationCharts(); });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
